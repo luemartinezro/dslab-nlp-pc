@@ -11,9 +11,9 @@ import typing
 import logging
 from unidecode import unidecode
 from sklearn.pipeline import Pipeline
-# some vectorizer: from sklearn.feature_extraction.text import XXXVectorizer
-# some model: from sklearn....<
-
+from sklearn.ensemble import GradientBoostingClassifier
+from sklearn.model_selection import GridSearchCV
+from sklearn.feature_extraction.text import CountVectorizer
 import nltk
 from nltk.stem.snowball import SnowballStemmer
 from nltk.tokenize import word_tokenize
@@ -30,7 +30,9 @@ logging.basicConfig(
 # Constants
 TARGET_MAP = {"F": 0, "NF": 1}
 TARGET_MAP_REV = {v: k for k, v in TARGET_MAP.items()}
-
+RND_SEED = 123
+PCT_TEST = 0.2
+K_FOLD = 3
 
 # Ensure NLTK resources are downloaded
 try:
@@ -74,10 +76,12 @@ def tokenizer_lemma_es(text,
 
 def get_model(
     # your Hiperparameters:
-    min_df: int = 3,
-    max_df: float = 0.5,
-    ...
+    min_df: int = 1,
+    max_df: float = 0.1,
+    max_features: int =  10,
+    max_depht: int = 2,
 ):
+    
     """
     Builds and returns a scikit-learn Pipeline for Spanish text classification
 
@@ -85,6 +89,7 @@ def get_model(
         min_df (int): Minimum document frequency for vectorizer.
         max_df (float): Maximum document frequency for vectorizer.
         max_features (int, optional): Maximum number of features to include.
+        max_depht (int): Maximum deep in the tree
 
     Returns:
         sklearn.pipeline.Pipeline: A pipeline with vectorizer and a classifier.
@@ -93,12 +98,20 @@ def get_model(
     logging.info("Building pipeline...")
     
     # Your vectorization strategy
-    dtm_transformer = XXXVectorizer(
-        ...
-    )
+    dtm_transformer = CountVectorizer(
+            strip_accents="ascii",
+            lowercase=True,
+            tokenizer=tokenizer_stemmer_es,
+            ngram_range=(1, 1),
+            binary=True,
+)
+   
 
     # Your model
-    clf = ...
+    clf = GradientBoostingClassifier(
+    n_estimators=2000,  # Many boosting rounds  so early stoping takes place
+    validation_fraction=0.2,  # Early stopping
+    random_state=RND_SEED)
 
 
     # Champion pipeline architecture

@@ -30,9 +30,9 @@ and install ipykernel with `pip install ipykernel`
 
 Download `spaCy` models:
 ```bash
-python -m spacy download en_core_news_sm
-python -m spacy download es_core_news_md
-python -m spacy download es_core_news_lg
+python -m spacy download en_core_news_sm (old version) // python -m spacy download en_core_web_sm
+python -m spacy download es_core_news_md 
+python -m spacy download es_core_news_lg  
 ```
 Download `nltk` models:
 ```bash

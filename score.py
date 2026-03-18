@@ -56,7 +56,7 @@ def main(path_data: str, output_file: str) -> None:
     
     # Load  data
     logging.info(f"Reading input data from: {path_data}")
-    df_score = pd....
+    df_score = pd.read_csv(path_data)
 
     if 'REQUIREMENT' not in df_score.columns:
         logging.error("Missing required column: 'REQUIREMENT' in input file.")
@@ -64,7 +64,7 @@ def main(path_data: str, output_file: str) -> None:
 
     # Prepar  data
     df_prep = df_score.copy()
-    df_prep['x_text'] = ...
+    df_prep['x_text'] = df_prep['REQUIREMENT'].astype(str).str.strip()
     logging.info(f"Input data shape: {df_prep.shape}")
 
     # Load production model
@@ -74,8 +74,8 @@ def main(path_data: str, output_file: str) -> None:
     
     # Get predictions
     logging.info("Generating predictions...")
-    X_score = ...
-    df_prep['y_hats'] = ...
+    X_score = df_prep["x_text"]
+    df_prep['y_hats'] = skl_pl.predict(X_score)
 
     # Write predictions
     logging.info(f"Predictions saved to: {path_processed}")

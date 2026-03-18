@@ -17,6 +17,7 @@ Optional arguments:
 
 import argparse
 import os
+import numpy as np
 import pandas as pd
 from datetime import datetime
 import logging
@@ -67,12 +68,13 @@ def main(
 
     # Prepar  data
     df_prep = df_raw.copy()
-    df_prep['y_is_nf'] =...
-    df_prep['x_text'] = ...
-    df_prep =...  # keep only ["x_text", "y_is_nf"]
+    df_prep['y_is_nf'] = np.where(df_raw['FINAL_LABEL']== 'F', 0, 1)
+    df_prep['x_text'] = df_raw['REQUIREMENT']
+    df_prep = df_prep[["x_text", "y_is_nf"]]  # keep only ["x_text", "y_is_nf"]
+
 
     df_train, df_test = train_test_split(
-        ...  # use parameters from config.py !!!!
+        df_prep, test_size= 0.2, random_state= 123 # use parameters from config.py !!!!
     )
 
     logging.info(f"Training data shape: {df_train.shape}")
@@ -84,22 +86,25 @@ def main(
 
     # Model training
     skl_pl = models.get_model(
-       ...  # your selected hiperparamters for the champion architecture
+        min_df = 1,
+        max_df = 0.1,
+        max_features =  10,
+        max_depht= 2,  # your selected hiperparamters for the champion architecture
     )
 
     X_train, y_train = df_train['x_text'], df_train['y_is_nf']
     X_test, y_test = df_test['x_text'], df_test['y_is_nf']
 
     logging.info("Training model...")
-    skl_pl.fit(...)
+    skl_pl.fit(X_train, y_train)
 
     # get label predictions
-    y_pred_train = ...
-    y_pred_test = ...
+    y_pred_train = skl_pl.predict(X_train)
+    y_pred_test = skl_pl.predict(X_test)
 
     # get eval f1-scores
-    f1_train = ...
-    f1_test = ...
+    f1_train = f1_score(y_train, y_pred_train, average='binary')
+    f1_test = f1_score(y_test, y_pred_test)
 
     logging.info(f"F1 Score (Train): {f1_train:.4f}")
     logging.info(f"F1 Score (Test): {f1_test:.4f}")
@@ -109,7 +114,7 @@ def main(
         "score": config.SCORE,
         "test_value": f1_test,
         "version_id": model_version_id,
-        "exe_dt": datetime.now().strftime("%Y%m%d"),
+        "exe_dt": datetime.now().strftime("%Y%m%d"), 
         "sklearn": sklearn.__version__
     }
 
